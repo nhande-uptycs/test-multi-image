@@ -20,7 +20,7 @@ jobs:
         id: set-matrix
         run: |
           # Find all Dockerfiles
-          files=$(ls Dockerfile Dockerfile[0-9]* 2>/dev/null || echo "Dockerfile")
+          files=$(ls dockerfile dockerfile[0-9]* 2>/dev/null || echo "Dockerfile")
           
           # Convert to JSON array
           json_array=$(echo "$files" | jq -R -s -c 'split("\n") | map(select(length > 0))')
