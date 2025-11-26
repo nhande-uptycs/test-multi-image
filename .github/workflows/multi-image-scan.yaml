@@ -16,7 +16,7 @@ jobs:
         id: build
         run: |
           images=()
-          for dockerfile in Dockerfile*; do
+          for dockerfile in dockerfile*; do
             image_name="myapp-${dockerfile#Dockerfile}"
             image_name="${image_name#-}"
             docker build -f "$dockerfile" -t "${image_name}:latest" .
