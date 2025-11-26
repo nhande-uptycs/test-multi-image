@@ -32,7 +32,7 @@ jobs:
           docker build -f ${{ matrix.dockerfile }} -t ${{ matrix.image-name }}:${{ matrix.image-tag }} .
       
       - name: Scan image with Uptycs
-        uses: uptycs/uptycs-image-scanner@v1
+        uses: uptycslabs/uptycs-action@main
         with:
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
           image: ${{ matrix.image-name }}:${{ matrix.image-tag }}
