@@ -1,20 +1,34 @@
-- name: Build all images
-  run: |
-    # Dynamically discover and build all Dockerfiles
-    images=()
-    for dockerfile in dockerfile*; do
-      image_name="myapp-${dockerfile#Dockerfile}"
-      image_name="${image_name#-}"  # Remove leading dash
-      docker build -f "$dockerfile" -t "${image_name}:latest" .
-      images+=("${image_name}:latest")
-    done
-    
-    # Save comma-separated list for next step
-    echo "IMAGES_TO_SCAN=$(IFS=','; echo "${images[*]}")" >> $GITHUB_ENV
+name: Build and Scan Multiple Images
 
-- name: Scan all images
-  uses: uptycslabs/uptycs-action@v1
-  with:
-    credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
-    image: ${{ env.IMAGES_TO_SCAN }}  # Comma-separated list
-    output-format: json
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Build all images
+        id: build
+        run: |
+          images=()
+          for dockerfile in Dockerfile*; do
+            image_name="myapp-${dockerfile#Dockerfile}"
+            image_name="${image_name#-}"
+            docker build -f "$dockerfile" -t "${image_name}:latest" .
+            images+=("${image_name}:latest")
+          done
+          
+          IFS=','
+          echo "IMAGES_TO_SCAN=${images[*]}" >> $GITHUB_ENV
+      
+      - name: Scan all images
+        uses: uptycslabs/uptycs-action@multi-image
+        with:
+          credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
+          image: ${{ env.IMAGES_TO_SCAN }}
+          output-format: json
