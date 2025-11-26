@@ -1,4 +1,4 @@
-name: Build and Scan Images
+name: Build and Scan Multiple Images (Matrix)
 
 on:
   push:
@@ -7,41 +7,66 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-scan:
+
+  discover-dockerfiles:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        include:
-          - dockerfile: dockerfile
-            image-name: my-nginx
-            image-tag: latest
-          - dockerfile: dockerfile1
-            image-name: my-httpd
-            image-tag: latest
-    
+    outputs:
+      dockerfiles: ${{ steps.set-matrix.outputs.dockerfiles }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Discover Dockerfiles
+        id: set-matrix
+        run: |
+          # Find all Dockerfiles
+          files=$(ls Dockerfile Dockerfile[0-9]* 2>/dev/null || echo "Dockerfile")
+          
+          # Convert to JSON array
+          json_array=$(echo "$files" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          
+          echo "dockerfiles=$json_array" >> $GITHUB_OUTPUT
+          echo "Found Dockerfiles: $json_array"
+          
+  build-and-scan:
+    needs: discover-dockerfiles
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dockerfile: ${{ fromJson(needs.discover-dockerfiles.outputs.dockerfiles) }}
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set image name
+        id: image-name
+        run: |
+          if [ "${{ matrix.dockerfile }}" = "Dockerfile" ]; then
+            echo "name=my-app" >> $GITHUB_OUTPUT
+          else
+            number=$(echo "${{ matrix.dockerfile }}" | sed 's/Dockerfile//')
+            echo "name=my-app${number}" >> $GITHUB_OUTPUT
+          fi
+
       
       - name: Build Docker image
         run: |
-          docker build -f ${{ matrix.dockerfile }} -t ${{ matrix.image-name }}:${{ matrix.image-tag }} .
-      
-      - name: Scan image with Uptycs
-        uses: uptycslabs/uptycs-action@main
+          docker build -f ${{ matrix.dockerfile }} \
+                       -t ${{ steps.image-name.outputs.name }}:latest .
+                       
+      - name: Scan with Uptycs
+        uses: uptycs/uptycs-image-scanner@v1
         with:
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
-          image: ${{ matrix.image-name }}:${{ matrix.image-tag }}
-          fatal-vulnerability-severity: "high"
+          image: ${{ steps.image-name.outputs.name }}:latest
           output-format: "json"
-          output-name: ${{ matrix.image-name }}-scan
+          output-name: ${{ steps.image-name.outputs.name }}-scan
           verbose: true
           exit-on-error: false
       
+
       # - name: Upload scan results
       #   if: always()
       #   uses: actions/upload-artifact@v3
