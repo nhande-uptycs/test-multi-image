@@ -42,11 +42,11 @@ jobs:
           verbose: true
           exit-on-error: false
       
-      - name: Upload scan results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.image-name }}-scan-results
-          path: |
-            *-scan-*.json
-            *-scan-*.csv
+      # - name: Upload scan results
+      #   if: always()
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ${{ matrix.image-name }}-scan-results
+      #     path: |
+      #       *-scan-*.json
+      #       *-scan-*.csv
