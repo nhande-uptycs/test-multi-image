@@ -57,7 +57,7 @@ jobs:
                        -t ${{ steps.image-name.outputs.name }}:latest .
                        
       - name: Scan with Uptycs
-        uses: uptycs/uptycs-image-scanner@v1
+        uses: uptycslabs/uptycs-action@main
         with:
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
           image: ${{ steps.image-name.outputs.name }}:latest
