@@ -1,0 +1,20 @@
+- name: Build all images
+  run: |
+    # Dynamically discover and build all Dockerfiles
+    images=()
+    for dockerfile in dockerfile*; do
+      image_name="myapp-${dockerfile#Dockerfile}"
+      image_name="${image_name#-}"  # Remove leading dash
+      docker build -f "$dockerfile" -t "${image_name}:latest" .
+      images+=("${image_name}:latest")
+    done
+    
+    # Save comma-separated list for next step
+    echo "IMAGES_TO_SCAN=$(IFS=','; echo "${images[*]}")" >> $GITHUB_ENV
+
+- name: Scan all images
+  uses: uptycslabs/uptycs-action@v1
+  with:
+    credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
+    image: ${{ env.IMAGES_TO_SCAN }}  # Comma-separated list
+    output-format: json
