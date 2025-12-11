@@ -29,10 +29,11 @@ jobs:
       - name: Scan all images
         uses: uptycslabs/uptycs-action@multi-image
         with:
+          image: ${{ env.IMAGES_TO_SCAN }}
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
           output-name: github-image-scan
-          image: ${{ env.IMAGES_TO_SCAN }}
           output-format: json
+          
       - name: Read Scan Output Summary
         id: read-scan-output
         shell: bash
