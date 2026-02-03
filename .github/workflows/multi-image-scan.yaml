@@ -32,7 +32,7 @@ jobs:
           image: ${{ env.IMAGES_TO_SCAN }}
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
           output-name: github-image-scan
-          output-format: json
+          output-format: csv
           
       - name: Read Scan Output Summary
         id: read-scan-output
