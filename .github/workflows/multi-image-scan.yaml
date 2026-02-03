@@ -27,7 +27,7 @@ jobs:
           echo "IMAGES_TO_SCAN=${images[*]}" >> $GITHUB_ENV
       
       - name: Scan all images
-        uses: uptycslabs/uptycs-action@3.0.0
+        uses: uptycslabs/uptycs-action@3.7.4
         with:
           image: ${{ env.IMAGES_TO_SCAN }}
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
