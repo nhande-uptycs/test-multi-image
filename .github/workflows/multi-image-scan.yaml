@@ -32,14 +32,14 @@ jobs:
           image: ${{ env.IMAGES_TO_SCAN }}
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
           output-name: github-image-scan
-          output-format: csv
+          output-format: json
           
       - name: Read Scan Output Summary
         id: read-scan-output
         shell: bash
         run: |
           OUTPUT_FILE="github-image-scan_vulnerabilities.json"
-
+          ls -al
           if [[ -f "$OUTPUT_FILE" ]]; then
             echo "Found scan summary file: $OUTPUT_FILE"
 
